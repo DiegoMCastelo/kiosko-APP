@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Historial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #0c0c0c;
+  --surface: #141414;
+  --border:  #222;
+  --text:    #f0f0f0;
+  --muted:   #555;
+  --green:   #b9f04a;
+  --blue:    #4af0e2;
+  --red:     #f04a4a;
+  --green-dim: #1a2a06;
+  --blue-dim:  #062a28;
+  --red-dim:   #2a0606;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100dvh;
+  padding: 24px 16px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: .5;
+}
+
+.wrap {
+  width: 100%;
+  max-width: 480px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Header ── */
+header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.btn-back {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 18px;
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: color .15s;
+  flex-shrink: 0;
+}
+.btn-back:hover { color: var(--text); }
+
+.logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 4px;
+}
+
+/* ── Resumen ── */
+.resumen {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.resumen-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.resumen-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+
+.card-efectivo::after  { background: var(--green); }
+.card-transferencia::after { background: var(--blue); }
+.card-fiado::after     { background: var(--red); }
+
+.resumen-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.resumen-monto {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  line-height: 1;
+  letter-spacing: 1px;
+}
+
+.card-efectivo  .resumen-monto { color: var(--green); }
+.card-transferencia .resumen-monto { color: var(--blue); }
+.card-fiado     .resumen-monto { color: var(--red); }
+
+.resumen-count {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* ── Filtros ── */
+.filtros {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.filtro-btn {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px;
+  letter-spacing: 2px;
+  padding: 8px 16px;
+  border-radius: 40px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.filtro-btn.active { color: #000; border-color: transparent; }
+.filtro-btn.f-todo.active        { background: var(--text);  color: #000; }
+.filtro-btn.f-efectivo.active    { background: var(--green); }
+.filtro-btn.f-transferencia.active { background: var(--blue); }
+.filtro-btn.f-fiado.active       { background: var(--red);  color: #fff; }
+
+/* ── Filtros fecha ── */
+.filtros-fecha {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.fecha-btn {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  padding: 7px 14px;
+  border-radius: 40px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.fecha-btn.active {
+  background: #222;
+  color: var(--text);
+  border-color: #444;
+}
+
+/* ── Buscador ── */
+.search-wrap {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.search-wrap input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  padding: 12px 16px 12px 40px;
+  outline: none;
+  transition: border-color .15s;
+}
+
+.search-wrap input:focus { border-color: #444; }
+.search-wrap input::placeholder { color: var(--muted); }
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 15px;
+  pointer-events: none;
+}
+
+/* ── Lista ── */
+#lista { display: flex; flex-direction: column; gap: 8px; }
+
+.mov-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  animation: fadeIn .2s ease;
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
+
+.mov-icon {
+  font-size: 22px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.mov-icon.efectivo     { background: var(--green-dim); }
+.mov-icon.transferencia { background: var(--blue-dim); }
+.mov-icon.fiado        { background: var(--red-dim); }
+
+.mov-info { flex: 1; min-width: 0; }
+
+.mov-tipo {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.mov-nombre {
+  font-size: 15px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mov-fecha {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.mov-monto {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+
+.mov-monto.efectivo      { color: var(--green); }
+.mov-monto.transferencia { color: var(--blue);  }
+.mov-monto.fiado         { color: var(--red);   }
+.mov-monto.pagado        { color: var(--muted); text-decoration: line-through; }
+
+.mov-icon.pagado { background: #1a1a1a; filter: grayscale(1) opacity(.5); }
+.mov-item.pagado-item { opacity: .55; }
+
+.btn-pagar {
+  background: none;
+  border: 1px solid #2a2a2a;
+  color: var(--muted);
+  font-size: 16px;
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.btn-pagar:active { background: var(--green-dim); color: var(--green); border-color: var(--green); }
+
+/* ── Estado vacío / carga ── */
+.estado {
+  text-align: center;
+  padding: 48px 0;
+  color: var(--muted);
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.estado .emoji { font-size: 36px; display: block; margin-bottom: 12px; }
+
+/* ── Total general ── */
+.total-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: #111;
+  border-top: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+}
+
+.total-label {
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.total-monto {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  color: var(--green);
+  letter-spacing: 2px;
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header>
+    <button class="btn-back" onclick="location.href='index.html'">←</button>
+    <div class="logo">HISTORIAL</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+      <span id="user-label" style="font-size:11px;color:var(--muted);letter-spacing:1px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+      <button onclick="logout()" style="background:none;border:1px solid var(--border);color:var(--muted);font-size:11px;padding:5px 10px;border-radius:8px;cursor:pointer;letter-spacing:1px">SALIR</button>
+    </div>
+  </header>
+
+  <!-- Resumen -->
+  <div class="resumen">
+    <div class="resumen-card card-efectivo">
+      <div class="resumen-label">Efectivo</div>
+      <div class="resumen-monto" id="sum-efectivo">$0</div>
+      <div class="resumen-count" id="cnt-efectivo">0 cobros</div>
+    </div>
+    <div class="resumen-card card-transferencia">
+      <div class="resumen-label">Transfer.</div>
+      <div class="resumen-monto" id="sum-transferencia">$0</div>
+      <div class="resumen-count" id="cnt-transferencia">0 cobros</div>
+    </div>
+    <div class="resumen-card card-fiado">
+      <div class="resumen-label">Fiado</div>
+      <div class="resumen-monto" id="sum-fiado">$0</div>
+      <div class="resumen-count" id="cnt-fiado">0 fiados</div>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filtros">
+    <button class="filtro-btn f-todo active"          onclick="setFiltro('todo', this)">TODOS</button>
+    <button class="filtro-btn f-efectivo"             onclick="setFiltro('efectivo', this)">💵 EFECTIVO</button>
+    <button class="filtro-btn f-transferencia"        onclick="setFiltro('transferencia', this)">🏦 TRANSF.</button>
+    <button class="filtro-btn f-fiado"                onclick="setFiltro('fiado', this)">📋 FIADO</button>
+  </div>
+
+  <!-- Filtros fecha -->
+  <div class="filtros-fecha">
+    <button class="fecha-btn active" onclick="setFecha('todo', this)">Todo</button>
+    <button class="fecha-btn" onclick="setFecha('hoy', this)">Hoy</button>
+    <button class="fecha-btn" onclick="setFecha('semana', this)">Esta semana</button>
+    <button class="fecha-btn" onclick="setFecha('mes', this)">Este mes</button>
+  </div>
+
+  <!-- Buscador (solo visible en transferencia y fiado) -->
+  <div class="search-wrap" id="search-wrap" style="display:none">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="buscador" placeholder="Buscar por nombre..." oninput="renderLista()">
+  </div>
+
+  <!-- Lista -->
+  <div id="lista"><div class="estado"><span class="emoji">⏳</span>Cargando...</div></div>
+
+</div>
+
+<!-- Total fijo abajo -->
+<div class="total-bar">
+  <div class="total-label">Total cobrado</div>
+  <div class="total-monto" id="total-general">$0</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = "https://opzepqgxurhxcutgzxmv.supabase.co"
+const SUPABASE_KEY = "sb_publishable_cnc7kxGtNMHJkpdCyc_3pQ_hPStSNgz"
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+let todos = []
+let filtroActual = "todo"
+let usuarioActual = null
+
+async function initAuth() {
+  const { data } = await db.auth.getSession()
+  if (!data.session) { location.href = 'login.html'; return }
+  usuarioActual = data.session.user
+  const nombre = usuarioActual.user_metadata?.nombre_negocio || usuarioActual.email
+  document.getElementById("user-label").textContent = nombre
+  cargar()
+}
+let fechaActual  = "todo"
+
+function setFecha(rango, btn) {
+  fechaActual = rango
+  document.querySelectorAll(".fecha-btn").forEach(b => b.classList.remove("active"))
+  btn.classList.add("active")
+  renderLista()
+}
+
+function dentroDeRango(ts) {
+  if (fechaActual === 'todo' || !ts) return true
+  const d     = new Date(ts)
+  const ahora = new Date()
+  if (fechaActual === 'hoy') {
+    return d.toDateString() === ahora.toDateString()
+  }
+  if (fechaActual === 'semana') {
+    const lunes = new Date(ahora)
+    lunes.setDate(ahora.getDate() - ((ahora.getDay() + 6) % 7))
+    lunes.setHours(0,0,0,0)
+    return d >= lunes
+  }
+  if (fechaActual === 'mes') {
+    return d.getMonth() === ahora.getMonth() && d.getFullYear() === ahora.getFullYear()
+  }
+  return true
+}
+
+const iconos = { efectivo: "💵", transferencia: "🏦", fiado: "📋", pagado: "✅" }
+
+async function marcarPagado(id) {
+  const { error } = await db
+    .from('movimientos')
+    .update({ tipo: 'pagado' })
+    .eq('id', id)
+
+  if (error) { alert("Error: " + error.message); return }
+
+  // actualizar en el array local (comparar como string por si acaso)
+  const idx = todos.findIndex(m => String(m.id) === String(id))
+  if (idx !== -1) {
+    todos[idx].tipo = 'pagado'
+  }
+
+  // cambiar siempre a "todos" para que el item pagado sea visible
+  document.querySelectorAll(".filtro-btn").forEach(b => b.classList.remove("active"))
+  document.querySelector(".filtro-btn.f-todo").classList.add("active")
+  filtroActual = 'todo'
+  document.getElementById("search-wrap").style.display = "block"
+
+  actualizarResumen()
+  renderLista()
+}
+
+const fmt = n => "$" + Math.abs(parseFloat(n) || 0).toLocaleString("es-AR", { minimumFractionDigits: 0, maximumFractionDigits: 2 })
+
+function fmtFecha(ts) {
+  if (!ts) return ""
+  const d = new Date(ts)
+  return d.toLocaleDateString("es-AR", { day:"2-digit", month:"2-digit", year:"2-digit" })
+       + " " + d.toLocaleTimeString("es-AR", { hour:"2-digit", minute:"2-digit" })
+}
+
+async function cargar() {
+  const { data, error } = await db
+    .from('movimientos')
+    .select('*')
+    .eq('user_id', usuarioActual.id)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    document.getElementById("lista").innerHTML =
+      `<div class="estado"><span class="emoji">❌</span>${error.message}</div>`
+    return
+  }
+
+  todos = data || []
+  actualizarResumen()
+  renderLista()
+}
+
+function actualizarResumen() {
+  const tipos = ["efectivo", "transferencia", "fiado"]
+  tipos.forEach(t => {
+    const items = todos.filter(m => m.tipo === t)
+    const suma  = items.reduce((s, m) => s + (parseFloat(m.monto) || 0), 0)
+    document.getElementById("sum-" + t).textContent = fmt(suma)
+    document.getElementById("cnt-" + t).textContent =
+      items.length + (t === "fiado" ? " fiados" : " cobros")
+  })
+}
+
+function setFiltro(tipo, btn) {
+  filtroActual = tipo
+  document.querySelectorAll(".filtro-btn").forEach(b => b.classList.remove("active"))
+  btn.classList.add("active")
+
+  // mostrar buscador solo si tiene nombres
+  const conNombre = tipo === "transferencia" || tipo === "fiado" || tipo === "todo"
+  document.getElementById("search-wrap").style.display = conNombre ? "block" : "none"
+  document.getElementById("buscador").value = ""
+
+  renderLista()
+}
+
+function renderLista() {
+  const busqueda = (document.getElementById("buscador").value || "").toLowerCase().trim()
+
+  let items = (filtroActual === "todo" ? todos : todos.filter(m => m.tipo === filtroActual))
+    .filter(m => dentroDeRango(m.created_at))
+
+  if (busqueda) {
+    items = items.filter(m => (m.nombre || "").toLowerCase().includes(busqueda))
+  }
+
+  // Total visible (solo efectivo + transferencia, no fiado = deuda)
+  const totalCobrado = items
+    .filter(m => m.tipo !== "fiado")
+    .reduce((s, m) => s + (parseFloat(m.monto) || 0), 0)
+  document.getElementById("total-general").textContent = fmt(totalCobrado)
+
+  const lista = document.getElementById("lista")
+
+  if (items.length === 0) {
+    lista.innerHTML = `<div class="estado"><span class="emoji">🔍</span>Sin resultados</div>`
+    return
+  }
+
+  lista.innerHTML = items.map(m => {
+    const esPagado = m.tipo === 'pagado'
+    const claseItem  = esPagado ? 'pagado-item' : ''
+    const claseIcono = esPagado ? 'pagado' : m.tipo
+    const claseMonto = esPagado ? 'pagado' : m.tipo
+    const labelTipo  = esPagado ? 'FIADO · PAGADO ✓' : m.tipo.toUpperCase()
+    return `
+    <div class="mov-item ${claseItem}">
+      <div class="mov-icon ${claseIcono}">${iconos[m.tipo] || '•'}</div>
+      <div class="mov-info">
+        <div class="mov-tipo">${labelTipo}</div>
+        <div class="mov-nombre">${m.nombre || '—'}</div>
+        <div class="mov-fecha">${fmtFecha(m.created_at)}</div>
+      </div>
+      <div class="mov-monto ${claseMonto}">${fmt(m.monto)}</div>
+      ${m.tipo === 'fiado' ? `<button class="btn-pagar" onclick="marcarPagado('${m.id}')" title="Marcar como pagado">✓</button>` : ''}
+    </div>`
+  }).join("")
+}
+
+initAuth()
+
+async function logout() {
+  await db.auth.signOut()
+  location.href = 'login.html'
+}
+</script>
+
+</body>
+</html>

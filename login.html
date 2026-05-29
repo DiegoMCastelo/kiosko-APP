@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Kiosco App — Ingresar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #0c0c0c;
+  --surface: #141414;
+  --border:  #222;
+  --text:    #f0f0f0;
+  --muted:   #555;
+  --green:   #b9f04a;
+  --red:     #f04a4a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: .5;
+}
+
+.wrap {
+  width: 100%;
+  max-width: 380px;
+  position: relative;
+  z-index: 1;
+}
+
+.logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  letter-spacing: 6px;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.tagline {
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 48px;
+}
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 28px;
+}
+
+.tab {
+  flex: 1;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 16px;
+  letter-spacing: 2px;
+  padding: 10px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.tab.active {
+  background: var(--green);
+  color: #000;
+}
+
+/* ── Form ── */
+.form { display: flex; flex-direction: column; gap: 14px; }
+
+label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  padding: 14px 16px;
+  outline: none;
+  transition: border-color .15s;
+}
+
+input:focus { border-color: #444; }
+input::placeholder { color: var(--muted); }
+
+.btn-main {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 3px;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  background: var(--green);
+  color: #000;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: filter .15s, transform .08s;
+}
+
+.btn-main:active { transform: scale(0.98); filter: brightness(.9); }
+.btn-main:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ── Separador Google ── */
+.sep {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 1px;
+  margin: 4px 0;
+}
+.sep::before, .sep::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.btn-google {
+  width: 100%;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: border-color .15s, background .15s;
+}
+.btn-google:hover { background: #1e1e1e; border-color: #444; }
+
+/* ── Mensaje de error/ok ── */
+.msg {
+  font-size: 13px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  text-align: center;
+  display: none;
+}
+.msg.error { background: #2a0606; color: var(--red);   border: 1px solid #4a1010; display: block; }
+.msg.ok    { background: #1a2a06; color: var(--green); border: 1px solid #2a4a0a; display: block; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="logo">KIOSCO</div>
+  <div class="tagline">Control de caja simple</div>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-login"    onclick="mostrarTab('login')">INGRESAR</button>
+    <button class="tab"        id="tab-registro" onclick="mostrarTab('registro')">REGISTRARSE</button>
+  </div>
+
+  <div id="msg" class="msg"></div>
+
+  <!-- LOGIN -->
+  <div class="form" id="form-login">
+    <div>
+      <label>Email</label>
+      <input id="login-email" type="email" placeholder="tu@email.com" autocomplete="email">
+    </div>
+    <div>
+      <label>Contraseña</label>
+      <input id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn-main" id="btn-login" onclick="login()">INGRESAR</button>
+    <div class="sep">o</div>
+    <button class="btn-google" onclick="loginGoogle()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Continuar con Google
+    </button>
+  </div>
+
+  <!-- REGISTRO -->
+  <div class="form" id="form-registro" style="display:none">
+    <div>
+      <label>Nombre del negocio</label>
+      <input id="reg-nombre" type="text" placeholder="Ej: Kiosco Don Luis" autocomplete="off">
+    </div>
+    <div>
+      <label>Email</label>
+      <input id="reg-email" type="email" placeholder="tu@email.com" autocomplete="email">
+    </div>
+    <div>
+      <label>Contraseña</label>
+      <input id="reg-pass" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+    </div>
+    <button class="btn-main" id="btn-registro" onclick="registro()">CREAR CUENTA</button>
+    <div class="sep">o</div>
+    <button class="btn-google" onclick="loginGoogle()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Continuar con Google
+    </button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = "https://opzepqgxurhxcutgzxmv.supabase.co"
+const SUPABASE_KEY = "sb_publishable_cnc7kxGtNMHJkpdCyc_3pQ_hPStSNgz"
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+// Si ya está logueado, ir directo
+db.auth.getSession().then(({ data }) => {
+  if (data.session) location.href = 'index.html'
+})
+
+// Capturar redirect de Google OAuth
+db.auth.onAuthStateChange((event, session) => {
+  if (session) location.href = 'index.html'
+})
+
+function mostrarTab(tab) {
+  document.getElementById("form-login").style.display    = tab === 'login'    ? 'flex' : 'none'
+  document.getElementById("form-registro").style.display = tab === 'registro' ? 'flex' : 'none'
+  document.getElementById("tab-login").classList.toggle("active",    tab === 'login')
+  document.getElementById("tab-registro").classList.toggle("active", tab === 'registro')
+  ocultarMsg()
+}
+
+function mostrarMsg(texto, tipo) {
+  const el = document.getElementById("msg")
+  el.textContent = texto
+  el.className = "msg " + tipo
+}
+
+function ocultarMsg() {
+  document.getElementById("msg").className = "msg"
+}
+
+async function login() {
+  const email = document.getElementById("login-email").value.trim()
+  const pass  = document.getElementById("login-pass").value
+
+  if (!email || !pass) { mostrarMsg("Completá todos los campos", "error"); return }
+
+  const btn = document.getElementById("btn-login")
+  btn.disabled = true; btn.textContent = "..."
+
+  const { error } = await db.auth.signInWithPassword({ email, password: pass })
+
+  if (error) {
+    mostrarMsg("Email o contraseña incorrectos", "error")
+    btn.disabled = false; btn.textContent = "INGRESAR"
+  }
+  // si ok → onAuthStateChange redirige
+}
+
+async function registro() {
+  const nombre = document.getElementById("reg-nombre").value.trim()
+  const email  = document.getElementById("reg-email").value.trim()
+  const pass   = document.getElementById("reg-pass").value
+
+  if (!nombre || !email || !pass) { mostrarMsg("Completá todos los campos", "error"); return }
+  if (pass.length < 6)            { mostrarMsg("La contraseña debe tener al menos 6 caracteres", "error"); return }
+
+  const btn = document.getElementById("btn-registro")
+  btn.disabled = true; btn.textContent = "..."
+
+  const { error } = await db.auth.signUp({
+    email,
+    password: pass,
+    options: { data: { nombre_negocio: nombre } }
+  })
+
+  if (error) {
+    mostrarMsg(error.message, "error")
+    btn.disabled = false; btn.textContent = "CREAR CUENTA"
+  } else {
+    mostrarMsg("¡Cuenta creada! Revisá tu email para confirmar.", "ok")
+    btn.disabled = false; btn.textContent = "CREAR CUENTA"
+  }
+}
+
+async function loginGoogle() {
+  await db.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + '/index.html' }
+  })
+}
+</script>
+
+</body>
+</html>

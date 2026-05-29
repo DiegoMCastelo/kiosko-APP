@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Clientes</title>
+</head>
+<body>
+
+<h1>Clientes</h1>
+
+<button id="btnNuevo">+ Nuevo</button>
+
+<div id="lista"></div>
+
+<!-- ✅ SUPABASE -->
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+<script>
+// 🛑 EVITA DOBLE EJECUCIÓN (CLAVE)
+if (window.appYaInicializada) {
+  console.log("YA INICIALIZADO, NO SE EJECUTA DE NUEVO")
+} else {
+  window.appYaInicializada = true
+
+  console.log("APP INICIANDO...")
+
+  // 🔌 CONFIG
+  const SUPABASE_URL = "https://opzepqgxurhxcutgzxmv.supabase.co"
+  const SUPABASE_KEY = "sb_publishable_cnc7kxGtNMHJkpdCyc_3pQ_hPStSNgz"
+
+  // 🔗 CONEXIÓN
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+  // 📥 CREAR CLIENTE
+  async function crearCliente(nombre) {
+    const { data, error } = await supabase
+      .from('clientes')
+      .insert([{ nombre }])
+
+    console.log("INSERT:", data, error)
+
+    if (error) {
+      alert("Error: " + error.message)
+    } else {
+      alert("Cliente creado ✅")
+      cargar()
+    }
+  }
+
+  // 📋 LISTAR CLIENTES
+  async function cargar() {
+    const { data, error } = await supabase
+      .from('clientes')
+      .select('*')
+
+    console.log("LISTA:", data, error)
+
+    const lista = document.getElementById("lista")
+    lista.innerHTML = ""
+
+    if (!data) return
+
+    data.forEach(c => {
+      const div = document.createElement("div")
+      div.innerHTML = `<p>${c.nombre}</p>`
+      lista.appendChild(div)
+    })
+  }
+
+  // 🔘 BOTÓN
+  document.getElementById("btnNuevo").onclick = function () {
+    console.log("CLICK OK")
+
+    const nombre = prompt("Nombre del cliente")
+
+    if (!nombre) return
+
+    crearCliente(nombre)
+  }
+
+  // 🚀 INICIAR
+  cargar()
+}
+</script>
+
+</body>
+</html>

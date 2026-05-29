@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#b9f04a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Kiosco</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg:       #0c0c0c;
+  --surface:  #141414;
+  --border:   #222;
+  --text:     #f0f0f0;
+  --muted:    #555;
+  --green:    #b9f04a;
+  --blue:     #4af0e2;
+  --red:      #f04a4a;
+  --green-dim:#1a2a06;
+  --blue-dim: #062a28;
+  --red-dim:  #2a0606;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px 32px;
+  overflow-x: hidden;
+}
+
+/* ── Ruido de fondo ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: .5;
+}
+
+/* ── Header ── */
+header {
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 28px;
+  position: relative;
+  z-index: 1;
+}
+
+.logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  letter-spacing: 4px;
+  color: var(--text);
+}
+
+.dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 10px var(--green);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: .4; transform: scale(.7); }
+}
+
+/* ── Display ── */
+.display-wrap {
+  width: 100%;
+  max-width: 380px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 20px 24px 16px;
+  margin-bottom: 16px;
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.display-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #fff2, transparent);
+}
+
+.op-hint {
+  font-size: 13px;
+  color: var(--muted);
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 1px;
+  min-height: 18px;
+  margin-bottom: 4px;
+}
+
+.display-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 72px;
+  line-height: 1;
+  letter-spacing: 2px;
+  color: var(--text);
+  word-break: break-all;
+  transition: color .15s;
+}
+
+.display-num.changed {
+  color: var(--green);
+}
+
+/* ── Grid teclado ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%;
+  max-width: 380px;
+  position: relative;
+  z-index: 1;
+}
+
+.key {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 1px;
+  padding: 18px 10px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: background .1s, transform .08s, border-color .1s;
+  position: relative;
+  overflow: hidden;
+}
+
+.key::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: white;
+  opacity: 0;
+  transition: opacity .1s;
+  border-radius: inherit;
+}
+
+.key:active::after { opacity: .06; }
+.key:active { transform: scale(0.93); }
+
+.key.op {
+  color: var(--green);
+  border-color: #2a3d10;
+  font-size: 32px;
+}
+
+.key.eq {
+  background: var(--green);
+  color: #000;
+  border-color: var(--green);
+}
+
+.key.eq:active { background: #a0d040; }
+
+.key.clr {
+  color: var(--red);
+  border-color: #2a1010;
+}
+
+.key.back {
+  color: var(--muted);
+}
+
+/* ── Botones de acción ── */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 380px;
+  margin-top: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+.action-btn {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 3px;
+  padding: 18px 20px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: transform .08s, filter .1s;
+}
+
+.action-btn:active { transform: scale(0.97); filter: brightness(1.1); }
+
+.action-btn .icon { font-size: 22px; }
+.action-btn .label { flex: 1; text-align: center; }
+
+.btn-efectivo {
+  background: var(--green-dim);
+  color: var(--green);
+  border-color: #2a4a0a;
+}
+
+.btn-transferencia {
+  background: var(--blue-dim);
+  color: var(--blue);
+  border-color: #0a3a38;
+}
+
+.btn-fiado {
+  background: var(--red-dim);
+  color: var(--red);
+  border-color: #3a1010;
+}
+
+.btn-historial {
+  background: transparent;
+  color: var(--muted);
+  border-color: var(--border);
+  margin-top: 4px;
+}
+.btn-historial:active { color: var(--text); }
+
+/* ── Modal ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.85);
+  backdrop-filter: blur(6px);
+  z-index: 100;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 0 0 0;
+}
+
+.modal-overlay.open {
+  display: flex;
+  animation: fadeIn .2s ease;
+}
+
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+
+.modal {
+  background: #181818;
+  border: 1px solid var(--border);
+  border-radius: 24px 24px 0 0;
+  width: 100%;
+  max-width: 480px;
+  padding: 28px 24px 40px;
+  animation: slideUp .25s cubic-bezier(.25,.46,.45,.94);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(60px); opacity: 0 }
+  to   { transform: translateY(0);    opacity: 1 }
+}
+
+.modal-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  letter-spacing: 3px;
+  margin-bottom: 6px;
+}
+
+.modal-monto {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  margin-bottom: 24px;
+  line-height: 1;
+}
+
+.modal label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.modal input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  outline: none;
+  transition: border-color .15s;
+}
+
+.modal input:focus {
+  border-color: var(--green);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.btn-confirm {
+  flex: 1;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 2px;
+  padding: 16px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: filter .1s, transform .08s;
+}
+
+.btn-confirm:active { transform: scale(0.97); }
+
+.btn-cancel {
+  background: var(--surface);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 16px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #1e1e1e;
+  border: 1px solid var(--border);
+  border-radius: 40px;
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: .5px;
+  opacity: 0;
+  transition: opacity .2s, transform .2s;
+  z-index: 200;
+  white-space: nowrap;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">KIOSCO</div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <span id="user-label" style="font-size:11px;color:var(--muted);letter-spacing:1px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+    <button onclick="logout()" style="background:none;border:1px solid var(--border);color:var(--muted);font-size:11px;padding:5px 10px;border-radius:8px;cursor:pointer;letter-spacing:1px">SALIR</button>
+  </div>
+</header>
+
+<div class="display-wrap">
+  <div class="op-hint" id="op-hint"></div>
+  <div class="display-num" id="display">0</div>
+</div>
+
+<div class="grid">
+  <button class="key" onclick="add(7)">7</button>
+  <button class="key" onclick="add(8)">8</button>
+  <button class="key" onclick="add(9)">9</button>
+  <button class="key" onclick="add(4)">4</button>
+  <button class="key" onclick="add(5)">5</button>
+  <button class="key" onclick="add(6)">6</button>
+  <button class="key" onclick="add(1)">1</button>
+  <button class="key" onclick="add(2)">2</button>
+  <button class="key" onclick="add(3)">3</button>
+  <button class="key op" onclick="operar('+')">+</button>
+  <button class="key" onclick="add(0)">0</button>
+  <button class="key op" onclick="operar('-')">−</button>
+  <button class="key clr" onclick="clearDisplay()">C</button>
+  <button class="key eq" onclick="igual()">=</button>
+  <button class="key back" onclick="borrar()">←</button>
+</div>
+
+<div class="actions">
+  <button class="action-btn btn-efectivo"      onclick="abrirModal('efectivo')">
+    <span class="icon">💵</span><span class="label">EFECTIVO</span>
+  </button>
+  <button class="action-btn btn-transferencia" onclick="abrirModal('transferencia')">
+    <span class="icon">🏦</span><span class="label">TRANSFERENCIA</span>
+  </button>
+  <button class="action-btn btn-fiado"         onclick="abrirModal('fiado')">
+    <span class="icon">📋</span><span class="label">FIADO</span>
+  </button>
+  <button class="action-btn btn-historial"     onclick="location.href='historial.html'">
+    <span class="icon">📊</span><span class="label">VER HISTORIAL</span>
+  </button>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="cerrarModalFuera(event)">
+  <div class="modal" id="modal">
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-monto" id="modal-monto"></div>
+    <div id="modal-campos"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-confirm" id="btn-confirm" onclick="confirmar()">GUARDAR</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<script>
+// ── Supabase ─────────────────────────────────────────────
+const SUPABASE_URL = "https://opzepqgxurhxcutgzxmv.supabase.co"
+const SUPABASE_KEY = "sb_publishable_cnc7kxGtNMHJkpdCyc_3pQ_hPStSNgz"
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+// ── Auth: redirigir si no hay sesión ────────────────────
+let usuarioActual = null
+
+async function initAuth() {
+  const { data } = await db.auth.getSession()
+  if (!data.session) { location.href = 'login.html'; return }
+  usuarioActual = data.session.user
+  const nombre = usuarioActual.user_metadata?.nombre_negocio || usuarioActual.email
+  document.getElementById("user-label").textContent = nombre
+}
+
+initAuth()
+
+// ── Estado calculadora ───────────────────────────────────
+let valorActual    = "0"
+let acumulado      = 0
+let operacion      = ""
+let esperandoNuevo = false
+
+function updateDisplay() {
+  const el = document.getElementById("display")
+  el.textContent = valorActual
+  el.classList.add("changed")
+  setTimeout(() => el.classList.remove("changed"), 150)
+  document.getElementById("op-hint").textContent =
+    operacion ? `${acumulado} ${operacion}` : ""
+}
+
+function add(n) {
+  if (esperandoNuevo) { valorActual = String(n); esperandoNuevo = false }
+  else valorActual = (valorActual === "0") ? String(n) : valorActual + n
+  updateDisplay()
+}
+
+function borrar() {
+  valorActual = valorActual.slice(0, -1) || "0"
+  updateDisplay()
+}
+
+function clearDisplay() {
+  valorActual = "0"; acumulado = 0; operacion = ""; esperandoNuevo = false
+  updateDisplay()
+}
+
+function operar(op) {
+  const n = parseFloat(valorActual)
+  if (operacion === "+")      acumulado += n
+  else if (operacion === "-") acumulado -= n
+  else                        acumulado  = n
+  operacion = op; esperandoNuevo = true
+  updateDisplay()
+}
+
+function igual() {
+  const n = parseFloat(valorActual)
+  if (operacion === "+")      acumulado += n
+  else if (operacion === "-") acumulado -= n
+  else                        acumulado  = n
+  valorActual = Number.isInteger(acumulado) ? String(acumulado) : acumulado.toFixed(2)
+  operacion = ""; esperandoNuevo = true
+  updateDisplay()
+}
+
+function montoActual() {
+  if (operacion !== "") igual()
+  return parseFloat(valorActual)
+}
+
+// ── Modal ────────────────────────────────────────────────
+let tipoActual = ""
+
+const configs = {
+  efectivo: {
+    titulo: "💵 EFECTIVO",
+    color:  "var(--green)",
+    bg:     "#b9f04a",
+    campos: ""   // sin campos extra
+  },
+  transferencia: {
+    titulo: "🏦 TRANSFERENCIA",
+    color:  "var(--blue)",
+    bg:     "#4af0e2",
+    campos: `
+      <label>Nombre del cliente (opcional)</label>
+      <input id="inp-nombre" type="text" placeholder="Ej: María González" autocomplete="off">
+    `
+  },
+  fiado: {
+    titulo: "📋 FIADO",
+    color:  "var(--red)",
+    bg:     "#f04a4a",
+    campos: `
+      <label>Nombre del cliente <span style="color:var(--red)">*</span></label>
+      <input id="inp-nombre" type="text" placeholder="Nombre obligatorio" autocomplete="off">
+      <label>Teléfono (opcional)</label>
+      <input id="inp-tel" type="tel" placeholder="Ej: 351 123-4567">
+    `
+  }
+}
+
+function abrirModal(tipo) {
+  const monto = montoActual()
+  if (!monto || monto === 0) { toast("Ingresá un monto primero"); return }
+
+  tipoActual = tipo
+  const cfg = configs[tipo]
+
+  document.getElementById("modal-title").textContent  = cfg.titulo
+  document.getElementById("modal-title").style.color  = cfg.color
+  document.getElementById("modal-monto").textContent  = "$ " + Math.abs(monto).toLocaleString("es-AR")
+  document.getElementById("modal-monto").style.color  = cfg.color
+  document.getElementById("modal-campos").innerHTML   = cfg.campos
+  document.getElementById("btn-confirm").style.background = cfg.bg
+  document.getElementById("btn-confirm").style.color      = tipo === "efectivo" ? "#000" : "#000"
+  document.getElementById("modal-overlay").classList.add("open")
+
+  // foco al primer input
+  setTimeout(() => {
+    const first = document.querySelector(".modal input")
+    if (first) first.focus()
+  }, 250)
+}
+
+function cerrarModal() {
+  document.getElementById("modal-overlay").classList.remove("open")
+}
+
+function cerrarModalFuera(e) {
+  if (e.target === document.getElementById("modal-overlay")) cerrarModal()
+}
+
+async function confirmar() {
+  const monto = parseFloat(valorActual)
+
+  // Validar nombre en fiado
+  if (tipoActual === "fiado") {
+    const nombre = document.getElementById("inp-nombre")?.value?.trim()
+    if (!nombre) {
+      document.getElementById("inp-nombre").style.borderColor = "var(--red)"
+      document.getElementById("inp-nombre").placeholder = "⚠ El nombre es obligatorio"
+      return
+    }
+  }
+
+  const btnConf = document.getElementById("btn-confirm")
+  btnConf.textContent = "..."
+  btnConf.disabled = true
+
+  try {
+    const payload = { tipo: tipoActual, monto, user_id: usuarioActual.id }
+
+    if (tipoActual === "transferencia" || tipoActual === "fiado") {
+      const nombre = document.getElementById("inp-nombre")?.value?.trim()
+      if (nombre) payload.nombre = nombre
+    }
+
+    if (tipoActual === "fiado") {
+      const tel = document.getElementById("inp-tel")?.value?.trim()
+      if (tel) payload.telefono = tel
+    }
+
+    const { error } = await db.from('movimientos').insert([payload])
+
+    if (error) throw error
+
+    cerrarModal()
+    clearDisplay()
+    toast("✓ Guardado correctamente")
+
+  } catch (err) {
+    console.error(err)
+    toast("Error al guardar: " + err.message)
+  } finally {
+    btnConf.textContent = "GUARDAR"
+    btnConf.disabled = false
+  }
+}
+
+// ── Logout ───────────────────────────────────────────────
+async function logout() {
+  await db.auth.signOut()
+  location.href = 'login.html'
+}
+
+// ── Toast ────────────────────────────────────────────────
+function toast(msg) {
+  const el = document.getElementById("toast")
+  el.textContent = msg
+  el.classList.add("show")
+  setTimeout(() => el.classList.remove("show"), 2800)
+}
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then(() => console.log('✅ PWA lista'))
+      .catch(e => console.log('Error SW:', e))
+  }
+</script>
+
+</body>
+</html>
