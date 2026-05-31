@@ -680,24 +680,25 @@ async function confirmar() {
   btnConf.disabled = true
 
   try {
-    const payload = { tipo: tipoActual, monto, user_id: usuarioActual.id }
-
-    if (tipoActual === "transferencia" || tipoActual === "fiado") {
-      const nombre = document.getElementById("inp-nombre")?.value?.trim()
-      if (nombre) payload.nombre = nombre
-    }
-
-    if (tipoActual === "fiado") {
-      const tel = document.getElementById("inp-tel")?.value?.trim()
-      if (tel) payload.telefono = tel
-    }
+    let payload, tabla
 
     if (tipoActual === "gasto") {
       const detalle = document.getElementById("inp-detalle")?.value?.trim()
-      if (detalle) payload.detalle = detalle
+      payload = { monto, user_id: usuarioActual.id, detalle }
+      tabla = "gastos"
+    } else {
+      payload = { tipo: tipoActual, monto, user_id: usuarioActual.id }
+      if (tipoActual === "transferencia" || tipoActual === "fiado") {
+        const nombre = document.getElementById("inp-nombre")?.value?.trim()
+        if (nombre) payload.nombre = nombre
+      }
+      if (tipoActual === "fiado") {
+        const tel = document.getElementById("inp-tel")?.value?.trim()
+        if (tel) payload.telefono = tel
+      }
+      tabla = "movimientos"
     }
 
-    const tabla = tipoActual === "gasto" ? "gastos" : "movimientos"
     const { error } = await db.from(tabla).insert([payload])
 
     if (error) throw error
