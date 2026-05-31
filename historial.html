@@ -16,9 +16,11 @@
   --green:   #b9f04a;
   --blue:    #4af0e2;
   --red:     #f04a4a;
-  --green-dim: #1a2a06;
-  --blue-dim:  #062a28;
-  --red-dim:   #2a0606;
+  --green-dim:  #1a2a06;
+  --blue-dim:   #062a28;
+  --red-dim:    #2a0606;
+  --yellow:     #f0c84a;
+  --yellow-dim: #2a1f06;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -158,7 +160,8 @@ header {
 .filtro-btn.f-todo.active        { background: var(--text);  color: #000; }
 .filtro-btn.f-efectivo.active    { background: var(--green); }
 .filtro-btn.f-transferencia.active { background: var(--blue); }
-.filtro-btn.f-fiado.active       { background: var(--red);  color: #fff; }
+.filtro-btn.f-fiado.active       { background: var(--red);    color: #fff; }
+.filtro-btn.f-gastos.active      { background: var(--yellow); color: #000; }
 
 /* ── Filtros fecha ── */
 .filtros-fecha {
@@ -283,6 +286,10 @@ header {
 .mov-monto.transferencia { color: var(--blue);  }
 .mov-monto.fiado         { color: var(--red);   }
 .mov-monto.pagado        { color: var(--muted); text-decoration: line-through; }
+.mov-monto.gasto         { color: var(--yellow); }
+.mov-icon.gasto          { background: var(--yellow-dim); }
+.card-gastos::after      { background: var(--yellow); }
+.card-gastos .resumen-monto { color: var(--yellow); }
 
 .mov-icon.pagado { background: #1a1a1a; filter: grayscale(1) opacity(.5); }
 .mov-item.pagado-item { opacity: .55; }
@@ -354,7 +361,7 @@ header {
   </header>
 
   <!-- Resumen -->
-  <div class="resumen">
+  <div class="resumen" style="grid-template-columns: repeat(2,1fr)">
     <div class="resumen-card card-efectivo">
       <div class="resumen-label">Efectivo</div>
       <div class="resumen-monto" id="sum-efectivo">$0</div>
@@ -370,6 +377,11 @@ header {
       <div class="resumen-monto" id="sum-fiado">$0</div>
       <div class="resumen-count" id="cnt-fiado">0 fiados</div>
     </div>
+    <div class="resumen-card card-gastos">
+      <div class="resumen-label">Gastos</div>
+      <div class="resumen-monto" id="sum-gastos">$0</div>
+      <div class="resumen-count" id="cnt-gastos">0 gastos</div>
+    </div>
   </div>
 
   <!-- Filtros -->
@@ -378,6 +390,7 @@ header {
     <button class="filtro-btn f-efectivo"             onclick="setFiltro('efectivo', this)">💵 EFECTIVO</button>
     <button class="filtro-btn f-transferencia"        onclick="setFiltro('transferencia', this)">🏦 TRANSF.</button>
     <button class="filtro-btn f-fiado"                onclick="setFiltro('fiado', this)">📋 FIADO</button>
+    <button class="filtro-btn f-gastos"               onclick="setFiltro('gasto', this)">🧾 GASTOS</button>
   </div>
 
   <!-- Filtros fecha -->
@@ -401,7 +414,7 @@ header {
 
 <!-- Total fijo abajo -->
 <div class="total-bar">
-  <div class="total-label">Total cobrado</div>
+  <div class="total-label" id="total-label">COBRADO − GASTOS</div>
   <div class="total-monto" id="total-general">$0</div>
 </div>
 
@@ -411,7 +424,9 @@ const SUPABASE_URL = "https://opzepqgxurhxcutgzxmv.supabase.co"
 const SUPABASE_KEY = "sb_publishable_cnc7kxGtNMHJkpdCyc_3pQ_hPStSNgz"
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
 
-let todos = []
+let movimientos = []
+let gastos      = []
+let todos       = []
 let filtroActual = "todo"
 let usuarioActual = null
 
@@ -451,7 +466,7 @@ function dentroDeRango(ts) {
   return true
 }
 
-const iconos = { efectivo: "💵", transferencia: "🏦", fiado: "📋", pagado: "✅" }
+const iconos = { efectivo: "💵", transferencia: "🏦", fiado: "📋", pagado: "✅", gasto: "🧾" }
 
 async function marcarPagado(id) {
   const { error } = await db
@@ -487,19 +502,21 @@ function fmtFecha(ts) {
 }
 
 async function cargar() {
-  const { data, error } = await db
-    .from('movimientos')
-    .select('*')
-    .eq('user_id', usuarioActual.id)
-    .order('created_at', { ascending: false })
+  const [resMovs, resGastos] = await Promise.all([
+    db.from('movimientos').select('*').eq('user_id', usuarioActual.id).order('created_at', { ascending: false }),
+    db.from('gastos').select('*').eq('user_id', usuarioActual.id).order('created_at', { ascending: false })
+  ])
 
-  if (error) {
+  if (resMovs.error) {
     document.getElementById("lista").innerHTML =
-      `<div class="estado"><span class="emoji">❌</span>${error.message}</div>`
+      `<div class="estado"><span class="emoji">❌</span>${resMovs.error.message}</div>`
     return
   }
 
-  todos = data || []
+  movimientos = resMovs.data || []
+  gastos      = (resGastos.data || []).map(g => ({ ...g, tipo: 'gasto', nombre: g.detalle }))
+  todos       = [...movimientos, ...gastos].sort((a,b) => new Date(b.created_at) - new Date(a.created_at))
+
   actualizarResumen()
   renderLista()
 }
@@ -513,6 +530,10 @@ function actualizarResumen() {
     document.getElementById("cnt-" + t).textContent =
       items.length + (t === "fiado" ? " fiados" : " cobros")
   })
+  // Gastos
+  const sumaG = gastos.reduce((s, g) => s + (parseFloat(g.monto) || 0), 0)
+  document.getElementById("sum-gastos").textContent = fmt(sumaG)
+  document.getElementById("cnt-gastos").textContent = gastos.length + " gastos"
 }
 
 function setFiltro(tipo, btn) {
@@ -533,16 +554,25 @@ function renderLista() {
 
   let items = (filtroActual === "todo" ? todos : todos.filter(m => m.tipo === filtroActual))
     .filter(m => dentroDeRango(m.created_at))
+  
+  // en gastos mostrar detalle como nombre
+  items = items.map(m => m.tipo === 'gasto' ? { ...m, nombre: m.detalle || m.nombre } : m)
 
   if (busqueda) {
     items = items.filter(m => (m.nombre || "").toLowerCase().includes(busqueda))
   }
 
-  // Total visible (solo efectivo + transferencia, no fiado = deuda)
+  // Total cobrado menos gastos
   const totalCobrado = items
-    .filter(m => m.tipo !== "fiado")
+    .filter(m => m.tipo !== "fiado" && m.tipo !== "gasto")
     .reduce((s, m) => s + (parseFloat(m.monto) || 0), 0)
-  document.getElementById("total-general").textContent = fmt(totalCobrado)
+  const totalGastos = items
+    .filter(m => m.tipo === "gasto")
+    .reduce((s, m) => s + (parseFloat(m.monto) || 0), 0)
+  const neto = totalCobrado - totalGastos
+  document.getElementById("total-label").textContent = filtroActual === "gasto" ? "TOTAL GASTOS" : "COBRADO − GASTOS"
+  document.getElementById("total-general").textContent = (filtroActual === "gasto" ? "" : "") + fmt(neto)
+  document.getElementById("total-general").style.color = neto >= 0 ? "var(--green)" : "var(--red)"  
 
   const lista = document.getElementById("lista")
 
