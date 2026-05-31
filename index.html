@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#b9f04a">
-<meta name="apple-mobile-web-app-capable" content="yes">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Kiosco</title>
@@ -21,23 +18,31 @@
   --green:    #b9f04a;
   --blue:     #4af0e2;
   --red:      #f04a4a;
-  --green-dim:#1a2a06;
-  --blue-dim: #062a28;
-  --red-dim:  #2a0606;
+  --green-dim:  #1a2a06;
+  --blue-dim:   #062a28;
+  --red-dim:    #2a0606;
+  --yellow:     #f0c84a;
+  --yellow-dim: #2a1f06;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+}
 
 body {
   background: var(--bg);
   color: var(--text);
   font-family: 'DM Sans', sans-serif;
-  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 24px 16px 32px;
-  overflow-x: hidden;
+  justify-content: space-between;
+  padding: 10px 12px 10px;
+  overflow: hidden;
 }
 
 /* ── Ruido de fondo ── */
@@ -54,18 +59,18 @@ body::before {
 /* ── Header ── */
 header {
   width: 100%;
-  max-width: 380px;
+  max-width: 420px;
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 28px;
+  align-items: center;
   position: relative;
   z-index: 1;
+  flex-shrink: 0;
 }
 
 .logo {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 32px;
+  font-size: 24px;
   letter-spacing: 4px;
   color: var(--text);
 }
@@ -86,15 +91,15 @@ header {
 /* ── Display ── */
 .display-wrap {
   width: 100%;
-  max-width: 380px;
+  max-width: 420px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 20px 24px 16px;
-  margin-bottom: 16px;
+  border-radius: 16px;
+  padding: 10px 18px 8px;
   position: relative;
   z-index: 1;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .display-wrap::after {
@@ -106,17 +111,17 @@ header {
 }
 
 .op-hint {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--muted);
   font-family: 'DM Sans', sans-serif;
   letter-spacing: 1px;
-  min-height: 18px;
-  margin-bottom: 4px;
+  min-height: 14px;
+  margin-bottom: 2px;
 }
 
 .display-num {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 72px;
+  font-size: 56px;
   line-height: 1;
   letter-spacing: 2px;
   color: var(--text);
@@ -131,21 +136,23 @@ header {
 /* ── Grid teclado ── */
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
   width: 100%;
-  max-width: 380px;
+  max-width: 420px;
   position: relative;
   z-index: 1;
+  flex-shrink: 0;
 }
 
 .key {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 28px;
+  font-size: 22px;
   letter-spacing: 1px;
-  padding: 18px 10px;
+  padding: 0;
+  height: 52px;
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--surface);
   color: var(--text);
   cursor: pointer;
@@ -192,34 +199,66 @@ header {
 
 /* ── Botones de acción ── */
 .actions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
   width: 100%;
-  max-width: 380px;
-  margin-top: 14px;
+  max-width: 420px;
   position: relative;
   z-index: 1;
+  flex-shrink: 0;
+}
+
+.actions-row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  width: 100%;
+  max-width: 420px;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
 }
 
 .action-btn {
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 20px;
-  letter-spacing: 3px;
-  padding: 18px 20px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 0;
+  height: 54px;
   border: 1px solid transparent;
-  border-radius: 14px;
+  border-radius: 12px;
   cursor: pointer;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 3px;
   transition: transform .08s, filter .1s;
 }
 
 .action-btn:active { transform: scale(0.97); filter: brightness(1.1); }
 
-.action-btn .icon { font-size: 22px; }
-.action-btn .label { flex: 1; text-align: center; }
+.action-btn .icon { font-size: 18px; }
+.action-btn .label { text-align: center; line-height: 1.1; }
+
+.action-btn-wide {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  padding: 0;
+  height: 40px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: transform .08s, filter .1s;
+}
+.action-btn-wide:active { transform: scale(0.97); filter: brightness(1.1); }
+.action-btn-wide .icon { font-size: 15px; }
 
 .btn-efectivo {
   background: var(--green-dim);
@@ -243,9 +282,15 @@ header {
   background: transparent;
   color: var(--muted);
   border-color: var(--border);
-  margin-top: 4px;
 }
 .btn-historial:active { color: var(--text); }
+
+.btn-gastos {
+  background: var(--yellow-dim);
+  color: var(--yellow);
+  border-color: #3a2a06;
+}
+.btn-gastos:active { filter: brightness(1.2); }
 
 /* ── Modal ── */
 .modal-overlay {
@@ -398,18 +443,24 @@ header {
   <button class="key" onclick="add(7)">7</button>
   <button class="key" onclick="add(8)">8</button>
   <button class="key" onclick="add(9)">9</button>
+  <button class="key op" onclick="operar('/')">÷</button>
+
   <button class="key" onclick="add(4)">4</button>
   <button class="key" onclick="add(5)">5</button>
   <button class="key" onclick="add(6)">6</button>
+  <button class="key op" onclick="operar('*')">×</button>
+
   <button class="key" onclick="add(1)">1</button>
   <button class="key" onclick="add(2)">2</button>
   <button class="key" onclick="add(3)">3</button>
   <button class="key op" onclick="operar('+')">+</button>
-  <button class="key" onclick="add(0)">0</button>
-  <button class="key op" onclick="operar('-')">−</button>
+
   <button class="key clr" onclick="clearDisplay()">C</button>
-  <button class="key eq" onclick="igual()">=</button>
+  <button class="key" onclick="add(0)">0</button>
   <button class="key back" onclick="borrar()">←</button>
+  <button class="key op" onclick="operar('-')">−</button>
+
+  <button class="key eq" style="grid-column:span 4" onclick="igual()">=</button>
 </div>
 
 <div class="actions">
@@ -417,13 +468,21 @@ header {
     <span class="icon">💵</span><span class="label">EFECTIVO</span>
   </button>
   <button class="action-btn btn-transferencia" onclick="abrirModal('transferencia')">
-    <span class="icon">🏦</span><span class="label">TRANSFERENCIA</span>
+    <span class="icon">🏦</span><span class="label">TRANSF.</span>
   </button>
   <button class="action-btn btn-fiado"         onclick="abrirModal('fiado')">
     <span class="icon">📋</span><span class="label">FIADO</span>
   </button>
-  <button class="action-btn btn-historial"     onclick="location.href='historial.html'">
-    <span class="icon">📊</span><span class="label">VER HISTORIAL</span>
+  <button class="action-btn btn-gastos"        onclick="abrirModal('gasto')">
+    <span class="icon">🧾</span><span class="label">GASTO</span>
+  </button>
+</div>
+<div class="actions-row2">
+  <button class="action-btn-wide btn-historial" onclick="location.href='historial.html'">
+    <span class="icon">📊</span><span>VER HISTORIAL</span>
+  </button>
+  <button class="action-btn-wide btn-historial" onclick="location.href='historial.html#gastos'">
+    <span class="icon">📉</span><span>VER GASTOS</span>
   </button>
 </div>
 
@@ -498,6 +557,8 @@ function operar(op) {
   const n = parseFloat(valorActual)
   if (operacion === "+")      acumulado += n
   else if (operacion === "-") acumulado -= n
+  else if (operacion === "*") acumulado *= n
+  else if (operacion === "/") acumulado  = n !== 0 ? acumulado / n : 0
   else                        acumulado  = n
   operacion = op; esperandoNuevo = true
   updateDisplay()
@@ -507,6 +568,8 @@ function igual() {
   const n = parseFloat(valorActual)
   if (operacion === "+")      acumulado += n
   else if (operacion === "-") acumulado -= n
+  else if (operacion === "*") acumulado *= n
+  else if (operacion === "/") acumulado  = n !== 0 ? acumulado / n : 0
   else                        acumulado  = n
   valorActual = Number.isInteger(acumulado) ? String(acumulado) : acumulado.toFixed(2)
   operacion = ""; esperandoNuevo = true
@@ -546,6 +609,15 @@ const configs = {
       <input id="inp-nombre" type="text" placeholder="Nombre obligatorio" autocomplete="off">
       <label>Teléfono (opcional)</label>
       <input id="inp-tel" type="tel" placeholder="Ej: 351 123-4567">
+    `
+  },
+  gasto: {
+    titulo: "🧾 GASTO",
+    color:  "var(--yellow)",
+    bg:     "#f0c84a",
+    campos: `
+      <label>Detalle del gasto <span style="color:var(--yellow)">*</span></label>
+      <input id="inp-detalle" type="text" placeholder="Ej: Mercadería, luz, limpieza..." autocomplete="off">
     `
   }
 }
@@ -593,6 +665,15 @@ async function confirmar() {
       return
     }
   }
+  // Validar detalle en gasto
+  if (tipoActual === "gasto") {
+    const detalle = document.getElementById("inp-detalle")?.value?.trim()
+    if (!detalle) {
+      document.getElementById("inp-detalle").style.borderColor = "var(--yellow)"
+      document.getElementById("inp-detalle").placeholder = "⚠ El detalle es obligatorio"
+      return
+    }
+  }
 
   const btnConf = document.getElementById("btn-confirm")
   btnConf.textContent = "..."
@@ -611,7 +692,13 @@ async function confirmar() {
       if (tel) payload.telefono = tel
     }
 
-    const { error } = await db.from('movimientos').insert([payload])
+    if (tipoActual === "gasto") {
+      const detalle = document.getElementById("inp-detalle")?.value?.trim()
+      if (detalle) payload.detalle = detalle
+    }
+
+    const tabla = tipoActual === "gasto" ? "gastos" : "movimientos"
+    const { error } = await db.from(tabla).insert([payload])
 
     if (error) throw error
 
@@ -641,13 +728,6 @@ function toast(msg) {
   el.classList.add("show")
   setTimeout(() => el.classList.remove("show"), 2800)
 }
-</script>
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js')
-      .then(() => console.log('✅ PWA lista'))
-      .catch(e => console.log('Error SW:', e))
-  }
 </script>
 
 </body>
